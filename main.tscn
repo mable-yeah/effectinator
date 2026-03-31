@@ -1,0 +1,325 @@
+[gd_scene load_steps=6 format=3 uid="uid://b2pp5oadsfg0y"]
+
+[ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://node_2d.gd" id="1_0xm2m"]
+[ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
+
+[sub_resource type="GDScript" id="GDScript_h2yge"]
+script/source = "extends TextureRect
+
+
+var grid_texture:Texture
+
+func _init() -> void:
+	var grid = GridOverlay.new()
+	grid_texture = grid.create(Vector2(10,10),Vector2(-1,-1),true,0x181919ff,0x202020ff)
+
+func _ready() -> void:
+	texture = grid_texture
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
+
+[sub_resource type="GDScript" id="GDScript_0xm2m"]
+script/source = "extends CodeEdit
+
+
+var highlight = CodeHighlighter.new()
+
+
+func _ready() -> void:
+	highlight.number_color = Color('a1ffe0')
+	highlight.symbol_color = Color('abc9ff')
+	highlight.function_color = Color('57b3ff')
+	highlight.member_variable_color = Color('bce0ff')
+	highlight.member_variable_color = Color('bce0ff')
+	
+	for keyword in keyword_list:
+		var color:Color =  Color('ff8ccc')
+		if is_special(keyword): color = Color('ffb373')
+		if is_control_flow(keyword): color = Color('ff7085')
+		highlight.add_keyword_color(keyword,color)
+	
+	self.syntax_highlighter = highlight
+
+
+
+
+
+
+func is_special(p_keyword:String) -> bool:
+	return ['COLOR','VERTEX','layer_name','UV','TEXTURE','fragment','vertex'].has(p_keyword)
+	
+func is_control_flow(p_keyword:String) -> bool:
+	return [\"break\",\"case\",\"continue\",\"default\",\"do\", \"else\",\"for\",\"if\",\"return\",\"switch\",\"while\"].has(p_keyword)
+
+const keyword_list =  [
+	'COLOR',
+	'VERTEX',
+	'layer_name',
+	'UV',
+	'TEXTURE',
+	
+	\"true\",
+	\"false\",
+
+	\"void\",
+	\"bool\",
+	\"bvec2\",
+	\"bvec3\",
+	\"bvec4\",
+	\"int\",
+	\"ivec2\",
+	\"ivec3\",
+	\"ivec4\",
+	\"uint\",
+	\"uvec2\",
+	\"uvec3\",
+	\"uvec4\",
+	\"float\",
+	\"vec2\",
+	\"vec3\",
+	\"vec4\",
+	\"mat2\",
+	\"mat3\",
+	\"mat4\",
+	\"sampler2D\",
+	\"isampler2D\",
+	\"usampler2D\",
+	\"sampler2DArray\",
+	\"isampler2DArray\",
+	\"usampler2DArray\",
+	\"sampler3D\",
+	\"isampler3D\",
+	\"usampler3D\",
+	\"samplerCube\",
+	\"samplerCubeArray\",
+	\"samplerExternalOES\",
+
+	\"flat\",
+	\"smooth\",
+
+	\"lowp\",
+	\"mediump\",
+	\"highp\",
+
+	\"uniform\",
+	\"group_uniforms\",
+	\"varying\",
+	\"const\",
+	\"struct\",
+	\"shader_type\",
+	\"render_mode\",
+	\"stencil_mode\",
+
+	\"instance\",
+	\"global\",
+
+	\"if\",
+	\"else\",
+	\"for\",
+	\"while\",
+	\"do\",
+	\"switch\",
+	\"case\",
+	\"default\",
+	\"break\",
+	\"continue\",
+	\"return\",
+	\"discard\",
+
+	\"in\",
+	\"out\",
+	\"inout\",
+
+	\"source_color\",
+	\"color_conversion_disabled\",
+	\"hint_range\",
+	\"hint_enum\",
+	\"instance_index\",
+
+	\"hint_normal\",
+	\"hint_default_white\",
+	\"hint_default_black\",
+	\"hint_default_transparent\",
+	\"hint_anisotropy\",
+	\"hint_roughness_r\",
+	\"hint_roughness_g\",
+	\"hint_roughness_b\",
+	\"hint_roughness_a\",
+	\"hint_roughness_normal\",
+	\"hint_roughness_gray\",
+	\"hint_screen_texture\",
+	\"hint_normal_roughness_texture\",
+	\"hint_depth_texture\",
+
+	\"hint_blit_source0\",
+	\"hint_blit_source1\",
+	\"hint_blit_source2\",
+	\"hint_blit_source3\",
+
+	\"filter_nearest\",
+	\"filter_linear\",
+	\"filter_nearest_mipmap\",
+	\"filter_linear_mipmap\",
+	\"filter_nearest_mipmap_anisotropic\",
+	\"filter_linear_mipmap_anisotropic\",
+	\"repeat_enable\",
+	\"repeat_disable\",
+
+	\"particles\",
+	\"sky\",
+	\"fog\",
+	\"vertex\",
+	'fragment',
+	'null',
+]
+"
+
+[node name="Node2D" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 1
+mouse_filter = 1
+script = ExtResource("1_0xm2m")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+texture_repeat = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch_mode = 4
+script = SubResource("GDScript_h2yge")
+
+[node name="viewport container" type="SubViewportContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="viewport container"]
+disable_3d = true
+transparent_bg = true
+handle_input_locally = false
+size = Vector2i(1152, 648)
+render_target_update_mode = 4
+
+[node name="sprite" type="TextureRect" parent="viewport container/SubViewport"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_h2yge")
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -64.0
+offset_top = -64.0
+offset_right = 64.0
+offset_bottom = 64.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_h2yge")
+stretch_mode = 4
+
+[node name="codepanel" type="HSplitContainer" parent="."]
+custom_minimum_size = Vector2(500, 648)
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -500.0
+grow_horizontal = 0
+grow_vertical = 2
+split_offset = 250
+
+[node name="Container" type="Container" parent="codepanel"]
+layout_mode = 2
+
+[node name="code" type="CodeEdit" parent="codepanel"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(20, 0)
+layout_mode = 2
+placeholder_text = "void fragment(){
+}
+
+void vertex(){
+}
+
+
+
+"
+minimap_draw = true
+minimap_width = 20
+highlight_all_occurrences = true
+highlight_current_line = true
+draw_tabs = true
+draw_spaces = true
+code_completion_enabled = true
+auto_brace_completion_enabled = true
+auto_brace_completion_highlight_matching = true
+script = SubResource("GDScript_0xm2m")
+
+[node name="Control" type="Control" parent="."]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+
+[node name="Panel" type="Panel" parent="Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 4
+
+[node name="merge" type="Button" parent="Control/Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+text = "merge"
+
+[node name="layer" type="Button" parent="Control/Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "adds a layer containing the current context, reguardless if you're in another context"
+focus_mode = 0
+text = "add layer"
+
+[node name="reset" type="Button" parent="Control/Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "clears the current context"
+focus_mode = 0
+text = "exit contex"
+
+[node name="sub scroll" type="ScrollContainer" parent="Control/Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 400)
+layout_mode = 2
+
+[node name="layer_list" type="VBoxContainer" parent="Control/Panel/VBoxContainer/sub scroll"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 200)
+layout_mode = 2
+size_flags_horizontal = 6
