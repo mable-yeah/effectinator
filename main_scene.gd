@@ -1,4 +1,5 @@
-extends Control
+class_name main_scene extends Control
+
 
 var current_code:String:
 	get():
