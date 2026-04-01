@@ -46,6 +46,7 @@ func instance_layer():
 	%layer_list.add_child(layer)
 	layers.push_back(layer)
 	layer.index = last_index 
+	
 	#this prevents already established layers from changing names after a lower layer is deleted
 	layer.set_layer_name(get_layer_name(layer.index))
 	
@@ -75,6 +76,9 @@ func get_layer_name(last_known_idx:int):
 		layer_name = r_match.strings[0]
 	
 	return layer_name
+
+
+
 
 func set_context(code:String = '', index:int = -1):
 	current_code = code ; last_index = index ; apply_shader()

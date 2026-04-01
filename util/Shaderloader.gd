@@ -19,12 +19,37 @@ static func define_shader(Shader_code:String) -> ShaderMaterial:
 	
 	return material
 
+
+
+
+static func get_include(shader_code):
+	if !shader_code.contains('include'):return []
+	var regex = RegEx.new()
+	
+	regex.compile("\\/\\/include = \\[[\\s\\S]+,?\\]")
+	var r_match = regex.search(shader_code)
+	if r_match == null: return []
+	var string:String = r_match.strings[0]
+	
+	var arr_start = string.find('[') ; var arr_end = string.find(']')
+	var array = string.substr(arr_start,arr_end)
+	array = array.remove_chars('[').remove_chars(']')
+	
+	var includes:PackedStringArray = []
+	for fn_name in array.split(','):
+		includes.push_back(shader_utility.get_function(fn_name))
+	
+	return includes
+
+
+
+
 ##injects a fallback hack into shader code so that uniform lists arent entirely empty, SHOULD NOT NEED TO BE CALLED BY ITSELF
 static func _inject_fallback(Shader_code):
 	#inject a uniform so if there isnt any in the shader, i can at least load a fallback
 	var header =  Shader_code.find("shader_type")
 	if header != -1:
-		var lines = Shader_code.split('\n')
+		var lines:Array = Shader_code.split('\n')
 
 		var header_position = -INF
 		for code in lines:
@@ -33,8 +58,15 @@ static func _inject_fallback(Shader_code):
 			if header_position != -INF:
 				break
 		#hopefully nobody ever uses this variable name, if they do.... they should not do that
-		lines.insert(header_position + 1,"uniform bool ____________ = true;")
+		var dist = 1
+		lines.insert(header_position + dist,"uniform bool ____________ = true;")
+		var includes = get_include(Shader_code)
+		for include in includes:
+			dist += 1
+			lines.insert(header_position + dist,include)
+		
 		Shader_code = "\n".join(lines)
+		print(Shader_code)
 	else:
 		var lines:Array = Shader_code.split('\n')
 		lines.push_front('shader_type canvas_item;')
@@ -56,3 +88,11 @@ class shader_layer extends Shader:
 	var has_error:bool:
 		get():
 			return get_shader_uniform_list().is_empty()
+
+
+
+
+
+
+
+	

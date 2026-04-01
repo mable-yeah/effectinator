@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=8 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -19,6 +19,20 @@ func _ready() -> void:
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0xm2m"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.1, 0.1, 0.1, 0.6)
+border_width_bottom = 2
+border_color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+corner_detail = 5
+
 [sub_resource type="GDScript" id="GDScript_0xm2m"]
 script/source = "extends CodeEdit
 
@@ -27,6 +41,7 @@ var highlight = CodeHighlighter.new()
 
 
 func _ready() -> void:
+	keyword_list += shader_utility.function_names
 	highlight.number_color = Color('a1ffe0')
 	highlight.symbol_color = Color('abc9ff')
 	highlight.function_color = Color('57b3ff')
@@ -37,22 +52,26 @@ func _ready() -> void:
 		var color:Color =  Color('ff8ccc')
 		if is_special(keyword): color = Color('ffb373')
 		if is_control_flow(keyword): color = Color('ff7085')
+		if is_function(keyword): color = Color('a3a3f5')
 		highlight.add_keyword_color(keyword,color)
 	
 	self.syntax_highlighter = highlight
 
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == 2: accept_event()
 
 
-
-
+func is_function(p_keyword) -> bool:
+	return shader_utility.function_names.has(p_keyword)
 
 func is_special(p_keyword:String) -> bool:
-	return ['COLOR','VERTEX','layer_name','UV','TEXTURE','fragment','vertex'].has(p_keyword)
+	return ['include','COLOR','VERTEX','layer_name','UV','TEXTURE','fragment','vertex'].has(p_keyword)
 	
 func is_control_flow(p_keyword:String) -> bool:
 	return [\"break\",\"case\",\"continue\",\"default\",\"do\", \"else\",\"for\",\"if\",\"return\",\"switch\",\"while\"].has(p_keyword)
 
-const keyword_list =  [
+var keyword_list =  [
+	'include',
 	'COLOR',
 	'VERTEX',
 	'layer_name',
@@ -175,6 +194,8 @@ const keyword_list =  [
 ]
 "
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0xm2m"]
+
 [node name="Node2D" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -250,6 +271,10 @@ layout_mode = 2
 unique_name_in_owner = true
 custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_0xm2m")
+theme_override_styles/focus = SubResource("StyleBoxFlat_0xm2m")
+theme_override_styles/read_only = SubResource("StyleBoxFlat_0xm2m")
+theme_override_styles/completion = SubResource("StyleBoxFlat_0xm2m")
 placeholder_text = "void fragment(){
 }
 
@@ -296,6 +321,7 @@ theme_override_constants/separation = 4
 
 [node name="merge" type="Button" parent="Control/Panel/VBoxContainer"]
 unique_name_in_owner = true
+material = SubResource("ShaderMaterial_0xm2m")
 layout_mode = 2
 focus_mode = 0
 text = "merge"
