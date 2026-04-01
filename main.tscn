@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=9 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -12,12 +12,14 @@ var grid_texture:Texture
 func _init() -> void:
 	var grid = GridOverlay.new()
 	grid_texture = grid.create(Vector2(10,10),Vector2(-1,-1),true,0x181919ff,0x202020ff)
-
+	
 func _ready() -> void:
 	texture = grid_texture
 "
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1bvp3"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_0xm2m"]
 content_margin_left = 4.0
@@ -57,9 +59,28 @@ func _ready() -> void:
 	
 	self.syntax_highlighter = highlight
 
+
+#this works but it kind of looks dookie if the editor is too small
+#code_completion_enabled = true
+#text_changed.connect(code_request)
+
+#func code_request():
+	#var code = text
+	#await get_tree().create_timer(0.5).timeout
+	#if code != text:return
+	#for keyword in keyword_list:
+		#add_code_completion_option(CodeEdit.KIND_VARIABLE,keyword,keyword,Color.WHITE,null,null,CodeCompletionLocation.LOCATION_OTHER)
+	#update_code_completion_options(false)
+
+
 func _gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == 2: accept_event()
-
+	
+	if Input.is_action_just_pressed('comment'):
+		var idx = get_caret_line() ; var line = get_line(idx)
+		var has_comment = line.begins_with('//')
+		line = line.remove_chars('//') if has_comment else '//%s' % line
+		set_line(idx,line)
 
 func is_function(p_keyword) -> bool:
 	return shader_utility.function_names.has(p_keyword)
@@ -253,7 +274,7 @@ texture = ExtResource("2_h2yge")
 stretch_mode = 4
 
 [node name="codepanel" type="HSplitContainer" parent="."]
-custom_minimum_size = Vector2(500, 648)
+custom_minimum_size = Vector2(500, 0)
 layout_mode = 1
 anchors_preset = 11
 anchor_left = 1.0
@@ -269,6 +290,8 @@ layout_mode = 2
 
 [node name="code" type="CodeEdit" parent="codepanel"]
 unique_name_in_owner = true
+z_index = 4096
+material = SubResource("ShaderMaterial_1bvp3")
 custom_minimum_size = Vector2(20, 0)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_0xm2m")

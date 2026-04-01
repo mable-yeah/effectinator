@@ -3,7 +3,7 @@ class_name shader_utility
 
 static func get_function(p_func:String):
 	var index = function_names.find(p_func)
-	if index == -1: return
+	if index == -1: return ''
 	return util_func.get(index,'')
 
 const function_names = [

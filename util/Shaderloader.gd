@@ -66,7 +66,6 @@ static func _inject_fallback(Shader_code):
 			lines.insert(header_position + dist,include)
 		
 		Shader_code = "\n".join(lines)
-		print(Shader_code)
 	else:
 		var lines:Array = Shader_code.split('\n')
 		lines.push_front('shader_type canvas_item;')
