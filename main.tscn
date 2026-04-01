@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=12 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -231,13 +231,27 @@ var keyword_list =  [
 script/source = "extends ColorPickerButton
 
 func _ready() -> void:
-	color_changed.connect(
-		func(value):
-			DisplayServer.clipboard_set(str(value))
+	picker_created.connect(
+		func():
+			var picker = get_picker()
+			picker.can_add_swatches = false
+			picker.edit_intensity = false
+			picker.hex_visible = false
+			picker.presets_visible = false
+			picker.color_modes_visible = false
+			
+			picker.picker_shape = ColorPicker.SHAPE_VHS_CIRCLE
 	)
+
+
+func _gui_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == 2: DisplayServer.clipboard_set(str(color))
 "
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0xm2m"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h2yge"]
+bg_color = Color(0, 0, 0, 0.44313726)
 
 [node name="Node2D" type="Control"]
 layout_mode = 3
@@ -320,6 +334,9 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_0xm2m")
 theme_override_styles/focus = SubResource("StyleBoxFlat_0xm2m")
 theme_override_styles/read_only = SubResource("StyleBoxFlat_0xm2m")
 theme_override_styles/completion = SubResource("StyleBoxFlat_0xm2m")
+text = "void fragment(){
+	COLOR.a = 0.5;
+}"
 placeholder_text = "void fragment(){
 }
 
@@ -404,9 +421,19 @@ text = "exit contex"
 [node name="sub scroll" type="ScrollContainer" parent="Control/Panel/VBoxContainer"]
 custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_h2yge")
 
 [node name="layer_list" type="VBoxContainer" parent="Control/Panel/VBoxContainer/sub scroll"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 size_flags_horizontal = 6
+
+[node name="ColorPicker" type="ColorPicker" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 298.0
+offset_bottom = 607.0
+edit_alpha = false
+edit_intensity = false
+can_add_swatches = false

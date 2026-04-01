@@ -13,7 +13,7 @@ var index = -1
 
 func _ready() -> void:
 	Erase.focus_mode = Control.FOCUS_NONE ; Name.focus_mode = Control.FOCUS_NONE
-	custom_minimum_size.y = 20.0 ; Name.custom_minimum_size.x = 170 ; Erase.custom_minimum_size.x = 20.0
+	custom_minimum_size.y = 20.0 ; Name.custom_minimum_size.x = 175 ; Erase.custom_minimum_size.x = 20.0
 	Name.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	Erase.text = 'X'
 	

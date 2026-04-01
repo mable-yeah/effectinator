@@ -15,6 +15,7 @@ var last_index:int = -1
 
 
 func _ready() -> void:
+
 	%merge.pressed.connect(rewrite_pass)
 	%layer.pressed.connect(instance_layer)
 	%reset.pressed.connect(set_context)
@@ -25,16 +26,28 @@ func _ready() -> void:
 			if %code.text != text: return
 			apply_shader()
 	)
+	
+	#await get_tree().create_timer(0.5).timeout
+	#OS.alert('warning: work in progress, features may not work as intended','haha im an error window :p')
 
 
 func _process(_delta: float) -> void:
 	%reset.disabled = last_index == -1
+	DisplayServer.window_set_title(monitor())
+
+
+func monitor() -> String:
+	var MEM_PEAK = OS.get_static_memory_peak_usage() 
+	var MEM_static = OS.get_static_memory_usage() 
+	var VRAM = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED)
+	
+	var humanized = [String.humanize_size(MEM_static),String.humanize_size(MEM_PEAK),String.humanize_size(VRAM)]
+	return '%s / %s | VRAM: %s' % humanized
 
 
 
 func apply_shader(shader_code:String = current_code,idx:int = last_index):
 	%sprite.material = ShaderLoader.define_shader(shader_code)
-	
 	if idx >= 0:
 		var layer = layers.get(idx)
 		layer.code = shader_code
@@ -85,27 +98,11 @@ func set_context(code:String = '', index:int = -1):
 	current_code = code ; last_index = index ; apply_shader()
 
 
-
-
+var alpha_helper = alpha_fix.new()
 
 func rewrite_pass() -> void:
 	if last_index >= 0:
 		var layer = layers.get(last_index)
 		layer.erase_requested.emit()
-	%sprite.texture = await fix_alpha(viewport)
+	%sprite.texture = alpha_helper.fix_alpha(viewport)
 	set_context()
-
-#if the alpha is less than 1.0 it kind of fucks up, this helps that
-func fix_alpha(texture:Image) -> ImageTexture:
-	var texture_size = texture.get_size()
-
-	for x in texture_size.x:
-		for y in texture_size.y:
-			var color = texture.get_pixel(x, y)
-			if color.a == 0.0 || color.a == 1.0:
-				continue
-			color.r /= color.a
-			color.g /= color.a
-			color.b /= color.a
-			texture.set_pixel(x, y, color)
-	return ImageTexture.create_from_image(texture)

@@ -1,0 +1,14 @@
+[remap]
+
+importer="glsl"
+type="RDShaderFile"
+uid="uid://cvhqj5kqqbmh5"
+path="res://.godot/imported/compute_alphafix.glsl-b5e62179e76647417876898371b6b19d.res"
+
+[deps]
+
+source_file="res://util/compute_alphafix.glsl"
+dest_files=["res://.godot/imported/compute_alphafix.glsl-b5e62179e76647417876898371b6b19d.res"]
+
+[params]
+
