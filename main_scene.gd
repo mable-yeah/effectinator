@@ -1,5 +1,8 @@
 class_name main_scene extends Control
 
+var viewport:Image:
+	get():
+		return %SubViewport.get_texture().get_image()
 
 var current_code:String:
 	get():
@@ -7,10 +10,8 @@ var current_code:String:
 	set(value):
 		%code.text = value
 
-
-
 var layers:Array[Layer]
-var last_index = -1
+var last_index:int = -1
 
 
 func _ready() -> void:
@@ -84,8 +85,27 @@ func set_context(code:String = '', index:int = -1):
 	current_code = code ; last_index = index ; apply_shader()
 
 
-func rewrite_pass():
+
+
+
+func rewrite_pass() -> void:
 	if last_index >= 0:
 		var layer = layers.get(last_index)
 		layer.erase_requested.emit()
+	%sprite.texture = await fix_alpha(viewport)
 	set_context()
+
+#if the alpha is less than 1.0 it kind of fucks up, this helps that
+func fix_alpha(texture:Image) -> ImageTexture:
+	var texture_size = texture.get_size()
+
+	for x in texture_size.x:
+		for y in texture_size.y:
+			var color = texture.get_pixel(x, y)
+			if color.a == 0.0 || color.a == 1.0:
+				continue
+			color.r /= color.a
+			color.g /= color.a
+			color.b /= color.a
+			texture.set_pixel(x, y, color)
+	return ImageTexture.create_from_image(texture)

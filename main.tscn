@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=11 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -15,6 +15,18 @@ func _init() -> void:
 	
 func _ready() -> void:
 	texture = grid_texture
+"
+
+[sub_resource type="GDScript" id="GDScript_lquwl"]
+script/source = "extends SubViewportContainer
+
+
+func _process(_delta: float) -> void:
+	var tex_size = %sprite.texture.get_size()
+	if size != tex_size:
+		size = tex_size
+		%SubViewport.size = tex_size
+	#pivot_offset = -size/2.0
 "
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
@@ -83,10 +95,10 @@ func _gui_input(event: InputEvent) -> void:
 		set_line(idx,line)
 
 func is_function(p_keyword) -> bool:
-	return shader_utility.function_names.has(p_keyword)
+	return (shader_utility.function_names + ['fragment','vertex']).has(p_keyword)
 
 func is_special(p_keyword:String) -> bool:
-	return ['include','COLOR','VERTEX','layer_name','UV','TEXTURE','fragment','vertex'].has(p_keyword)
+	return ['include','COLOR','VERTEX','layer_name','UV','TEXTURE'].has(p_keyword)
 	
 func is_control_flow(p_keyword:String) -> bool:
 	return [\"break\",\"case\",\"continue\",\"default\",\"do\", \"else\",\"for\",\"if\",\"return\",\"switch\",\"while\"].has(p_keyword)
@@ -215,6 +227,16 @@ var keyword_list =  [
 ]
 "
 
+[sub_resource type="GDScript" id="GDScript_1bvp3"]
+script/source = "extends ColorPickerButton
+
+func _ready() -> void:
+	color_changed.connect(
+		func(value):
+			DisplayServer.clipboard_set(str(value))
+	)
+"
+
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_0xm2m"]
 
 [node name="Node2D" type="Control"]
@@ -225,7 +247,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 focus_mode = 1
-mouse_filter = 1
+mouse_filter = 2
 script = ExtResource("1_0xm2m")
 
 [node name="TextureRect" type="TextureRect" parent="."]
@@ -236,38 +258,38 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 stretch_mode = 4
 script = SubResource("GDScript_h2yge")
 
-[node name="viewport container" type="SubViewportContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-focus_mode = 0
-stretch = true
 
-[node name="SubViewport" type="SubViewport" parent="viewport container"]
+[node name="viewport container" type="SubViewportContainer" parent="CenterContainer"]
+layout_mode = 2
+focus_mode = 0
+mouse_filter = 2
+script = SubResource("GDScript_lquwl")
+
+[node name="SubViewport" type="SubViewport" parent="CenterContainer/viewport container"]
+unique_name_in_owner = true
 disable_3d = true
 transparent_bg = true
 handle_input_locally = false
-size = Vector2i(1152, 648)
+size = Vector2i(2, 2)
 render_target_update_mode = 4
 
-[node name="sprite" type="TextureRect" parent="viewport container/SubViewport"]
+[node name="sprite" type="TextureRect" parent="CenterContainer/viewport container/SubViewport"]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_h2yge")
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -64.0
-offset_top = -64.0
-offset_right = 64.0
-offset_bottom = 64.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_h2yge")
@@ -332,6 +354,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel"]
 layout_mode = 1
@@ -340,7 +363,22 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_constants/separation = 4
+
+[node name="margin" type="MarginContainer" parent="Control/Panel/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 50
+theme_override_constants/margin_right = 50
+
+[node name="Picker" type="ColorPickerButton" parent="Control/Panel/VBoxContainer/margin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 35)
+layout_mode = 2
+focus_mode = 0
+edit_intensity = false
+script = SubResource("GDScript_1bvp3")
 
 [node name="merge" type="Button" parent="Control/Panel/VBoxContainer"]
 unique_name_in_owner = true
