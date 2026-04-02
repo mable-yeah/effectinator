@@ -15,11 +15,13 @@ var last_index:int = -1
 
 
 func _ready() -> void:
-
 	%merge.pressed.connect(rewrite_pass)
 	%layer.pressed.connect(instance_layer)
 	%reset.pressed.connect(set_context)
-	%save.pressed.connect(save_dialog)
+	%export.pressed.connect(export_dialog)
+	%save_project.pressed.connect(format_project)
+	%load_project.pressed.connect(load_project)
+	
 	%code.text_changed.connect(
 		func():
 			var text = %code.text
@@ -33,8 +35,7 @@ func _ready() -> void:
 	
 	
 
-
-func save_dialog():
+func export_dialog():
 	var dialog = FileDialog.new()
 	dialog.use_native_dialog = true
 	dialog.title = 'pick a location to save the image'
@@ -51,6 +52,80 @@ func save_dialog():
 		func(path):
 			save_image(path)
 	)
+
+
+func project_save_dialog(data:String):
+	var dialog = FileDialog.new()
+	dialog.use_native_dialog = true
+	dialog.title = 'pick a location to save the project'
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	
+	dialog.set_filters(['*.eff']) #just bullshitting
+	dialog.popup()
+	dialog.file_selected.connect(
+		func(path):
+			var file = FileAccess.open(path,FileAccess.WRITE)
+			file.store_string(data) ; file.close()
+	)
+
+
+func format_project():
+	var layers_data:PackedStringArray = []
+	for layer in layers:
+		layers_data.push_back(layer.saveify())
+	
+	var image:Image = %sprite.texture.get_image()
+	var image_data = {
+		'layers':layers_data,
+		'size':[image.get_size().x,image.get_size().y],
+		'format':image.get_format(),
+		'data':image.get_data().hex_encode(),
+	}
+	
+	var out = JSON.stringify(image_data,"   ",false,true)
+	project_save_dialog(out)
+
+func load_project():
+	var dialog = FileDialog.new()
+	dialog.use_native_dialog = true
+	dialog.title = 'pick a .eff file'
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	dialog.set_filters(['*.eff']) #just bullshitting
+	dialog.popup()
+	dialog.file_selected.connect(
+		func(path):
+			var file = FileAccess.open(path,FileAccess.READ)
+			if FileAccess.get_open_error() != OK: 
+				print(error_string(FileAccess.get_open_error()))
+				return
+			set_context()
+			for layer in layers:
+				layer.queue_free()
+			layers.clear()
+			var data:Dictionary = JSON.parse_string(file.get_as_text())
+			
+			var stored_layers:Array = data.get('layers',[])
+			var image_data:PackedByteArray = data.get('data','0').hex_decode()
+			var image_size:Array = data.get('size',[0.0,0.0])
+			var format:Image.Format = data.get('format',5) as Image.Format
+			image_size.resize(2)
+			if image_size.has(null): image_size[image_size.find(null)] = 0.0
+			
+			var image = Image.create_from_data(image_size[0],image_size[1],false,format,image_data)
+			var texture = ImageTexture.create_from_image(image)
+			
+			%sprite.texture = texture
+			
+			for layer in stored_layers:
+				layer = JSON.parse_string(layer)
+				if !(layer is Dictionary): continue
+				instance_layer(layer)
+				
+	)
+
+
 
 
 var supported_formats:Dictionary[String,format_container] = {
@@ -132,18 +207,18 @@ func apply_shader(shader_code:String = current_code,idx:int = last_index):
 		layer.code = shader_code
 		layer.set_layer_name(get_layer_name(layer.index))
 
-func instance_layer():
+func instance_layer(map:Dictionary = {}):
 	last_index = layers.size()
 	var layer = Layer.new()
-	layer.code = current_code
 	%layer_list.add_child(layer)
 	layers.push_back(layer)
-	layer.index = last_index 
 	
-	#this prevents already established layers from changing names after a lower layer is deleted
-	layer.set_layer_name(get_layer_name(layer.index))
-	
-	set_context()
+	if map.is_empty():
+		layer.code = current_code ; layer.index = last_index 
+		layer.set_layer_name(get_layer_name(layer.index)) ; set_context()
+		#this prevents already established layers from changing names after a lower layer is deleted
+	else:
+		layer.map(map)
 	
 	layer.code_requested.connect(func():
 		set_context(layer.code,layers.find(layer))
@@ -172,7 +247,6 @@ func get_layer_name(last_known_idx:int):
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	
 	var vector = $CenterContainer.scale
 	
 	var zoom = Vector2.ONE * 10.0

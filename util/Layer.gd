@@ -8,7 +8,7 @@ signal erase_requested
 var code:String
 var Name:Button = Button.new()
 var Erase:Button = Button.new()
-var index = -1
+var index:int = -1
 
 
 func _ready() -> void:
@@ -27,3 +27,18 @@ func _ready() -> void:
 
 func set_layer_name(value:String):
 	name = value ; Name.text = name
+
+
+func saveify():
+	var resource = {
+		'index':index,
+		'name':name,
+		'code':code,
+	}
+	
+	return JSON.stringify(resource,"   ",false,true)
+
+func map(data:Dictionary):
+	index = data.get('index',-1)
+	code = data.get('code','')
+	set_layer_name(data.get('name','Layer %s' % index))

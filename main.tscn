@@ -403,6 +403,7 @@ theme_override_constants/margin_right = 50
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 35)
 layout_mode = 2
+tooltip_text = "right click to get the color formatted as '(0.0,0.0,0.0,0.0)'"
 focus_mode = 0
 edit_intensity = false
 script = SubResource("GDScript_1bvp3")
@@ -411,6 +412,7 @@ script = SubResource("GDScript_1bvp3")
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_0xm2m")
 layout_mode = 2
+tooltip_text = "merges the current context onto the image"
 focus_mode = 0
 text = "merge"
 
@@ -439,9 +441,24 @@ custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 size_flags_horizontal = 6
 
-[node name="save" type="Button" parent="Control/Panel/VBoxContainer"]
+[node name="export" type="Button" parent="Control/Panel/VBoxContainer"]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_0xm2m")
 layout_mode = 2
+tooltip_text = "exports the current image as '.png/jpg'"
 focus_mode = 0
-text = "save"
+text = "export"
+
+[node name="save_project" type="Button" parent="Control/Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "saves the current project as a whole"
+focus_mode = 0
+text = "save project"
+
+[node name="load_project" type="Button" parent="Control/Panel/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+tooltip_text = "loads a project from a '.eff' file"
+focus_mode = 0
+text = "load project"
