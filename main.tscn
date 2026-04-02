@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=13 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -15,6 +15,13 @@ func _init() -> void:
 	
 func _ready() -> void:
 	texture = grid_texture
+"
+
+[sub_resource type="GDScript" id="GDScript_7mycd"]
+script/source = "extends CenterContainer
+
+func _process(_delta: float) -> void:
+	pivot_offset = size/2.0
 "
 
 [sub_resource type="GDScript" id="GDScript_lquwl"]
@@ -284,6 +291,8 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(576, 324)
+script = SubResource("GDScript_7mycd")
 
 [node name="viewport container" type="SubViewportContainer" parent="CenterContainer"]
 layout_mode = 2
@@ -436,12 +445,3 @@ material = SubResource("ShaderMaterial_0xm2m")
 layout_mode = 2
 focus_mode = 0
 text = "save"
-
-[node name="ColorPicker" type="ColorPicker" parent="."]
-visible = false
-layout_mode = 0
-offset_right = 298.0
-offset_bottom = 607.0
-edit_alpha = false
-edit_intensity = false
-can_add_swatches = false

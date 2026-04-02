@@ -171,7 +171,25 @@ func get_layer_name(last_known_idx:int):
 	return layer_name
 
 
-
+func _unhandled_input(event: InputEvent) -> void:
+	
+	var vector = $CenterContainer.scale
+	
+	var zoom = Vector2.ONE * 10.0
+	if Input.is_action_pressed('ui_shift'):
+		zoom *= 2.0
+	
+	zoom *= get_process_delta_time() * vector
+	
+	if !(event is InputEventMouseButton): return 
+	if !event.is_pressed(): return
+	
+	
+	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
+		vector += zoom
+	if event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+		vector -= zoom
+	$CenterContainer.scale = clamp(vector,Vector2(0.05,0.05),Vector2(200,200))
 
 func set_context(code:String = '', index:int = -1):
 	current_code = code ; last_index = index ; apply_shader()
