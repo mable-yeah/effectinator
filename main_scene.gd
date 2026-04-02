@@ -19,6 +19,7 @@ func _ready() -> void:
 	%merge.pressed.connect(rewrite_pass)
 	%layer.pressed.connect(instance_layer)
 	%reset.pressed.connect(set_context)
+	%save.pressed.connect(save_dialog)
 	%code.text_changed.connect(
 		func():
 			var text = %code.text
@@ -27,8 +28,89 @@ func _ready() -> void:
 			apply_shader()
 	)
 	
-	#await get_tree().create_timer(0.5).timeout
-	#OS.alert('warning: work in progress, features may not work as intended','haha im an error window :p')
+	get_window().files_dropped.connect(on_file_dropped)
+	apply_shader()
+	
+	
+
+
+func save_dialog():
+	var dialog = FileDialog.new()
+	dialog.use_native_dialog = true
+	dialog.title = 'pick a location to save the image'
+	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	
+	var formats = supported_formats.keys()
+	for i in formats.size():
+		var format = formats[i]
+		format = '*.%s' % format
+		formats[i] = format
+	dialog.set_filters(formats)
+	dialog.popup()
+	dialog.file_selected.connect(
+		func(path):
+			save_image(path)
+	)
+
+
+var supported_formats:Dictionary[String,format_container] = {
+	'png':format_container.new('load_png_from_buffer','save_png'),
+	'jpg':format_container.new('load_jpg_from_buffer','save_jpg')
+}
+
+
+class format_container:
+	#both of these method strings should exist in Image
+	var read:String
+	var write:String
+	
+	func _init(p_read:String,p_write:String) -> void:
+		read = p_read
+		write = p_write
+
+
+func on_file_dropped(files:PackedStringArray):
+	var extensions = supported_formats.keys()
+	if files.size() == 0: return
+	for file in files: #if a whole bunch are dropped in, just get the first valid one
+		if !extensions.has(file.get_extension()): continue
+		load_image(file)
+		return 
+	printerr('no dropped file had any supported format')
+
+func load_image(path:String):
+	if !FileAccess.file_exists(path): printerr("file doesn't exist %s" % path.get_basename()) ; return 
+	var Read = FileAccess.open(path,FileAccess.READ)
+	if Read == null: printerr(error_string(FileAccess.get_open_error())) ; return
+		
+	var Data = Read.get_buffer(Read.get_length())
+	var image = Image.new()
+	
+	var function = supported_formats.get(path.get_extension(),null)
+	if function == null: 
+		printerr('could not find a valid read function for "%s"' % path.get_extension())
+		return
+	image.call(function.read,Data)
+	Read.close()
+	
+	var texture = ImageTexture.create_from_image(image)
+	%sprite.texture = texture
+
+func save_image(path):
+	if FileAccess.file_exists(path):
+		OS.alert('warning, file already exists and it will be overwritten','warning')
+	
+	var image:Image = %sprite.texture.get_image()
+	image.convert(Image.FORMAT_RGBA8)
+	image.premultiply_alpha()
+	
+	var function = supported_formats.get(path.get_extension(),null)
+	if function == null: 
+		printerr('could not find a valid write function for "%s"' % path.get_extension())
+		return
+	var save_call = image.call(function.write,path)
+	
+	if save_call != Error.OK: print(error_string(save_call))
 
 
 func _process(_delta: float) -> void:

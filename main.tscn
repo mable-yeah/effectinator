@@ -22,6 +22,7 @@ script/source = "extends SubViewportContainer
 
 
 func _process(_delta: float) -> void:
+	if %sprite.texture == null: return
 	var tex_size = %sprite.texture.get_size()
 	if size != tex_size:
 		size = tex_size
@@ -428,6 +429,13 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(200, 200)
 layout_mode = 2
 size_flags_horizontal = 6
+
+[node name="save" type="Button" parent="Control/Panel/VBoxContainer"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_0xm2m")
+layout_mode = 2
+focus_mode = 0
+text = "save"
 
 [node name="ColorPicker" type="ColorPicker" parent="."]
 visible = false
