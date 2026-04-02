@@ -97,9 +97,6 @@ func load_image(path:String):
 	%sprite.texture = texture
 
 func save_image(path):
-	if FileAccess.file_exists(path):
-		OS.alert('warning, file already exists and it will be overwritten','warning')
-	
 	var image:Image = %sprite.texture.get_image()
 	image.convert(Image.FORMAT_RGBA8)
 	image.premultiply_alpha()
