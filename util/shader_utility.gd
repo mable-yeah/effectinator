@@ -29,7 +29,8 @@ const function_names = [
 	"polygon",
 	"line",
 	"circle",
-	"border"
+	"border",
+	'scale_uv',
 ]
 
 
@@ -219,4 +220,11 @@ vec4 polygon(vec2 uv, float width, int sides)
 }
 ',
 
+23:'vec2 scale_uv(vec2 uv,float scale){
+	uv -= 0.5;
+	uv *= scale;
+	uv += 0.5;
+	return uv;
+}
+'
 }

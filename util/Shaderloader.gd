@@ -26,11 +26,10 @@ static func get_include(shader_code):
 	if !shader_code.contains('include'):return []
 	var regex = RegEx.new()
 	
-	regex.compile("\\/\\/include = \\[[\\s\\S]+,?\\]")
+	regex.compile("\\/\\/include = \\[([\\s\\S].+,?)?\\]")
 	var r_match = regex.search(shader_code)
 	if r_match == null: return []
 	var string:String = r_match.strings[0]
-	
 	var arr_start = string.find('[') ; var arr_end = string.find(']')
 	var array = string.substr(arr_start,arr_end)
 	array = array.remove_chars('[').remove_chars(']')
@@ -38,9 +37,7 @@ static func get_include(shader_code):
 	var includes:PackedStringArray = []
 	for fn_name in array.split(','):
 		includes.push_back(shader_utility.get_function(fn_name))
-	
 	return includes
-
 
 
 
@@ -87,11 +84,3 @@ class shader_layer extends Shader:
 	var has_error:bool:
 		get():
 			return get_shader_uniform_list().is_empty()
-
-
-
-
-
-
-
-	
