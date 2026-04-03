@@ -32,12 +32,27 @@ func _ready() -> void:
 	
 	get_window().files_dropped.connect(on_file_dropped)
 	apply_shader()
-	
-	
+
+
+
+
+func get_dialog() -> FileDialog:
+	var dialog = FileDialog.new()
+	add_child(dialog)
+	dialog.use_native_dialog = true
+
+	dialog.close_requested.connect(
+		func(): dialog.call_deferred("queue_free")
+	)
+	dialog.canceled.connect(
+		func(): dialog.call_deferred("queue_free")
+	)
+	return dialog
+
+
 
 func export_dialog():
-	var dialog = FileDialog.new()
-	dialog.use_native_dialog = true
+	var dialog = get_dialog()
 	dialog.title = 'pick a location to save the image'
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
 	
@@ -50,13 +65,13 @@ func export_dialog():
 	dialog.popup()
 	dialog.file_selected.connect(
 		func(path):
+			dialog.call_deferred("queue_free")
 			save_image(path)
 	)
 
 
 func project_save_dialog(data:String):
-	var dialog = FileDialog.new()
-	dialog.use_native_dialog = true
+	var dialog = get_dialog()
 	dialog.title = 'pick a location to save the project'
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
 	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
@@ -65,9 +80,11 @@ func project_save_dialog(data:String):
 	dialog.popup()
 	dialog.file_selected.connect(
 		func(path):
+			dialog.call_deferred("queue_free")
 			var file = FileAccess.open(path,FileAccess.WRITE)
 			file.store_string(data) ; file.close()
 	)
+	
 
 
 func format_project():
@@ -87,8 +104,7 @@ func format_project():
 	project_save_dialog(out)
 
 func load_project():
-	var dialog = FileDialog.new()
-	dialog.use_native_dialog = true
+	var dialog = get_dialog()
 	dialog.title = 'pick a .eff file'
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
 	dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
@@ -96,6 +112,7 @@ func load_project():
 	dialog.popup()
 	dialog.file_selected.connect(
 		func(path):
+			dialog.call_deferred("queue_free")
 			var file = FileAccess.open(path,FileAccess.READ)
 			if FileAccess.get_open_error() != OK: 
 				print(error_string(FileAccess.get_open_error()))
@@ -124,8 +141,6 @@ func load_project():
 				instance_layer(layer)
 				
 	)
-
-
 
 
 var supported_formats:Dictionary[String,format_container] = {

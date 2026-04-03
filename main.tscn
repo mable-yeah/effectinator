@@ -437,7 +437,7 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_h2yge")
 
 [node name="layer_list" type="VBoxContainer" parent="Control/Panel/VBoxContainer/sub scroll"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 200)
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 2
 size_flags_horizontal = 6
 
