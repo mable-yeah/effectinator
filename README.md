@@ -19,3 +19,8 @@ u can also do
 ..to add in a pre-made function
 (replace with func name from shader_utility.gd)
 
+>//canvas_size = [0.0,0.0]
+
+..to change the size of the canvas/exported image
+(the inputted value is multiplicative not an actual resolution)
+

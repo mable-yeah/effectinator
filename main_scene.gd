@@ -117,7 +117,6 @@ func load_project():
 			if FileAccess.get_open_error() != OK: 
 				print(error_string(FileAccess.get_open_error()))
 				return
-			set_context()
 			for layer in layers:
 				layer.queue_free()
 			layers.clear()
@@ -139,7 +138,7 @@ func load_project():
 				layer = JSON.parse_string(layer)
 				if !(layer is Dictionary): continue
 				instance_layer(layer)
-				
+			set_context()
 	)
 
 
@@ -185,6 +184,7 @@ func load_image(path:String):
 	
 	var texture = ImageTexture.create_from_image(image)
 	%sprite.texture = texture
+	apply_shader()
 
 func save_image(path):
 	var image:Image = %sprite.texture.get_image()
@@ -201,9 +201,9 @@ func save_image(path):
 
 
 func _process(_delta: float) -> void:
+	$CenterContainer.pivot_offset = $CenterContainer.size/2.0
 	%reset.disabled = last_index == -1
 	DisplayServer.window_set_title(monitor())
-
 
 func monitor() -> String:
 	var MEM_PEAK = OS.get_static_memory_peak_usage() 
@@ -216,6 +216,7 @@ func monitor() -> String:
 
 
 func apply_shader(shader_code:String = current_code,idx:int = last_index):
+	%SubViewport.size = get_canvas_size()
 	%sprite.material = ShaderLoader.define_shader(shader_code)
 	if idx >= 0:
 		var layer = layers.get(idx)
@@ -259,6 +260,29 @@ func get_layer_name(last_known_idx:int):
 		layer_name = r_match.strings[0]
 	
 	return layer_name
+
+
+func get_canvas_size():
+	if %sprite.texture == null: return Vector2.ZERO
+	var canvas_size = %sprite.texture.get_size()
+	
+	if !current_code.contains('canvas_size'): return canvas_size
+	
+	var regex = RegEx.new()
+	regex.compile("\\/\\/canvas_size = \\[(\\d+(\\.?\\d+?)?),(\\d+(\\.?\\d+?)?)\\]")
+	
+	var r_match = regex.search(current_code)
+	
+	if r_match != null:
+		var string:String = r_match.strings[0]
+		var start = string.find('[') ; var end = string.find(']')
+		
+		if (start == -1) || (end == -1): return canvas_size
+		string = string.substr(start,end)
+		
+		var parse = JSON.parse_string(string)
+		canvas_size *= Vector2(parse[0],parse[1])
+	return clamp(canvas_size,Vector2.ZERO,Vector2(4096,4096))
 
 
 func _unhandled_input(event: InputEvent) -> void:

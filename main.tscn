@@ -17,25 +17,16 @@ func _ready() -> void:
 	texture = grid_texture
 "
 
-[sub_resource type="GDScript" id="GDScript_7mycd"]
-script/source = "extends CenterContainer
+[sub_resource type="Shader" id="Shader_0xm2m"]
+code = "shader_type canvas_item;
 
-func _process(_delta: float) -> void:
-	pivot_offset = size/2.0
+void fragment() {
+	COLOR = mix(COLOR,vec4(vec3(0.0),0.1),1.0 - COLOR.a);
+}
 "
 
-[sub_resource type="GDScript" id="GDScript_lquwl"]
-script/source = "extends SubViewportContainer
-
-
-func _process(_delta: float) -> void:
-	if %sprite.texture == null: return
-	var tex_size = %sprite.texture.get_size()
-	if size != tex_size:
-		size = tex_size
-		%SubViewport.size = tex_size
-	#pivot_offset = -size/2.0
-"
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_lquwl"]
+shader = SubResource("Shader_0xm2m")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_h2yge"]
 
@@ -106,16 +97,17 @@ func is_function(p_keyword) -> bool:
 	return (shader_utility.function_names + ['fragment','vertex']).has(p_keyword)
 
 func is_special(p_keyword:String) -> bool:
-	return ['include','COLOR','VERTEX','layer_name','UV','TEXTURE'].has(p_keyword)
+	return ['canvas_size','layer_name','include','COLOR','VERTEX','UV','TEXTURE'].has(p_keyword)
 	
 func is_control_flow(p_keyword:String) -> bool:
 	return [\"break\",\"case\",\"continue\",\"default\",\"do\", \"else\",\"for\",\"if\",\"return\",\"switch\",\"while\"].has(p_keyword)
 
 var keyword_list =  [
 	'include',
+	'layer_name',
+	'canvas_size',
 	'COLOR',
 	'VERTEX',
-	'layer_name',
 	'UV',
 	'TEXTURE',
 	
@@ -274,10 +266,11 @@ script = ExtResource("1_0xm2m")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 texture_repeat = 2
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+layout_mode = 0
+offset_left = 576.0
+offset_top = 324.0
+offset_right = 576.0
+offset_bottom = 324.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -292,13 +285,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 pivot_offset = Vector2(576, 324)
-script = SubResource("GDScript_7mycd")
 
 [node name="viewport container" type="SubViewportContainer" parent="CenterContainer"]
+material = SubResource("ShaderMaterial_lquwl")
 layout_mode = 2
 focus_mode = 0
 mouse_filter = 2
-script = SubResource("GDScript_lquwl")
 
 [node name="SubViewport" type="SubViewport" parent="CenterContainer/viewport container"]
 unique_name_in_owner = true
@@ -308,16 +300,20 @@ handle_input_locally = false
 size = Vector2i(2, 2)
 render_target_update_mode = 4
 
-[node name="sprite" type="TextureRect" parent="CenterContainer/viewport container/SubViewport"]
-unique_name_in_owner = true
-material = SubResource("ShaderMaterial_h2yge")
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="Container" type="Control" parent="CenterContainer/viewport container/SubViewport"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
 grow_horizontal = 2
 grow_vertical = 2
+
+[node name="sprite" type="Sprite2D" parent="CenterContainer/viewport container/SubViewport/Container"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_h2yge")
 texture = ExtResource("2_h2yge")
-stretch_mode = 4
 
 [node name="codepanel" type="HSplitContainer" parent="."]
 custom_minimum_size = Vector2(500, 0)
