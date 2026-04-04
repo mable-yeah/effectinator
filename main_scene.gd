@@ -98,6 +98,7 @@ func format_project():
 		'size':[image.get_size().x,image.get_size().y],
 		'format':image.get_format(),
 		'data':image.get_data().hex_encode(),
+		'hash':hash(image.get_data())
 	}
 	
 	var out = JSON.stringify(image_data,"   ",false,true)
@@ -123,9 +124,18 @@ func load_project():
 			var data:Dictionary = JSON.parse_string(file.get_as_text())
 			
 			var stored_layers:Array = data.get('layers',[])
-			var image_data:PackedByteArray = data.get('data','0').hex_decode()
+			var image_data:PackedByteArray = data.get('data',PackedByteArray([0,0,0,0]).hex_encode()).hex_decode()
 			var image_size:Array = data.get('size',[0.0,0.0])
+			
+			var image_hash:int = data.get('hash',hash(image_data)) 
+			#if there is no hash, just trust the image
+			
 			var format:Image.Format = data.get('format',5) as Image.Format
+			
+			if hash(image_data) != image_hash: 
+				printerr('mismatching hash, image data may be malformed')
+				return 
+			
 			image_size.resize(2)
 			if image_size.has(null): image_size[image_size.find(null)] = 0.0
 			
@@ -304,7 +314,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		vector -= zoom
 	$CenterContainer.scale = clamp(vector,Vector2(0.05,0.05),Vector2(200,200))
 
-func set_context(code:String = '', index:int = -1):
+func set_context(code:String = '', index:int = -1) -> void:
 	current_code = code ; last_index = index ; apply_shader()
 
 

@@ -84,14 +84,63 @@ func _ready() -> void:
 	#update_code_completion_options(false)
 
 
-func _gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and event.button_index == 2: accept_event()
+func _gui_input(_event: InputEvent) -> void:
+	if Input.is_action_just_pressed('comment'): comment()
+	if Input.is_action_just_pressed('ui_find_next'): find_next()
+
+
+
+func comment() -> void:
+	if has_selection():
+		var selection = get_line_ranges_from_carets()
+		for caret in selection:
+			for idx in range(caret.x,caret.y + 1):
+				comment_line(idx)
+		return
+	for caret in get_sorted_carets():
+		var idx = get_caret_line(caret) ; comment_line(idx)
+
+func comment_line(idx) -> void:
+	var line = get_line(idx)
+	var has_comment = line.begins_with('//')
+	line = line.remove_chars('//') if has_comment else '//%s' % line
+	set_line(idx,line)
+
+
+#hopefully this doesnt tweak out
+var last_occurrence = -1
+func find_next() -> void:
+	var found_lines:Array[Vector2] = []
 	
-	if Input.is_action_just_pressed('comment'):
-		var idx = get_caret_line() ; var line = get_line(idx)
-		var has_comment = line.begins_with('//')
-		line = line.remove_chars('//') if has_comment else '//%s' % line
-		set_line(idx,line)
+	var current_line = get_caret_line() ; var selection = get_selected_text()
+	var regex = RegEx.new() ; regex.compile('%s\\\\W' % selection)
+	#regex is needed to make sure shit like thisvalue doesnt match with 
+	#thisvalueshit (which .find does)
+	
+	var split = text.split('\\n', true)
+	
+	for index in range(split.size()):
+		var this_line = split[index]
+		
+		var regex_search = regex.search(this_line)
+		if regex_search == null:continue
+		
+		var this_column = this_line.find(regex_search.strings[0])
+		found_lines.append(Vector2(index,this_column))
+		
+		if index != current_line: continue
+		last_occurrence = found_lines.size() - 1
+	
+	if found_lines.size() == 0: return
+	
+	last_occurrence = (last_occurrence + 1) % found_lines.size()
+	#thankyou modulo and also jane remover (she did nothing)
+	
+	var this_position = found_lines[last_occurrence]
+	var line = this_position.x ; var column = this_position.y
+	
+	select(line,column,line,column + selection.length())
+	center_viewport_to_caret()
 
 func is_function(p_keyword) -> bool:
 	return (shader_utility.function_names + ['fragment','vertex']).has(p_keyword)
@@ -287,6 +336,7 @@ grow_vertical = 2
 pivot_offset = Vector2(576, 324)
 
 [node name="viewport container" type="SubViewportContainer" parent="CenterContainer"]
+texture_filter = 1
 material = SubResource("ShaderMaterial_lquwl")
 layout_mode = 2
 focus_mode = 0
@@ -352,6 +402,7 @@ void vertex(){
 
 
 "
+context_menu_enabled = false
 minimap_draw = true
 minimap_width = 20
 highlight_all_occurrences = true
