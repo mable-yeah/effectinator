@@ -34,8 +34,6 @@ func _ready() -> void:
 	apply_shader()
 
 
-
-
 func get_dialog() -> FileDialog:
 	var dialog = FileDialog.new()
 	add_child(dialog)
@@ -119,7 +117,7 @@ func load_project():
 				print(error_string(FileAccess.get_open_error()))
 				return
 			for layer in layers:
-				layer.queue_free()
+				layer.free()
 			layers.clear()
 			var data:Dictionary = JSON.parse_string(file.get_as_text())
 			
@@ -227,7 +225,7 @@ func monitor() -> String:
 
 func apply_shader(shader_code:String = current_code,idx:int = last_index):
 	%SubViewport.size = get_canvas_size()
-	%sprite.material = ShaderLoader.define_shader(shader_code)
+	%sprite.material = shader_loader.define_shader(shader_code)
 	if idx >= 0:
 		var layer = layers.get(idx)
 		layer.code = shader_code
@@ -318,11 +316,12 @@ func set_context(code:String = '', index:int = -1) -> void:
 	current_code = code ; last_index = index ; apply_shader()
 
 
-var alpha_helper = alpha_fix.new()
+var alpha_helper:alpha_fix = alpha_fix.new()
 
 func rewrite_pass() -> void:
-	if last_index >= 0:
+	if last_index >= 0 and not Input.is_action_pressed('ui_ctrl'):
 		var layer = layers.get(last_index)
 		layer.erase_requested.emit()
+	
 	%sprite.texture = alpha_helper.fix_alpha(viewport)
 	set_context()

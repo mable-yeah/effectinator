@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=14 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -49,6 +49,8 @@ corner_detail = 5
 [sub_resource type="GDScript" id="GDScript_0xm2m"]
 script/source = "extends CodeEdit
 
+const default_line_color = Color(\"00000000\")
+const error_line_color = Color('ff786b4d')
 
 var highlight = CodeHighlighter.new()
 
@@ -69,26 +71,32 @@ func _ready() -> void:
 		highlight.add_keyword_color(keyword,color)
 	
 	self.syntax_highlighter = highlight
+	get_tree().process_frame.connect(refresh)
 
 
-#this works but it kind of looks dookie if the editor is too small
-#code_completion_enabled = true
-#text_changed.connect(code_request)
+func refresh():
+	%error_text.text = shader_loader.get_error_message()
+	if shader_loader.in_error_state:
+		set_error_line(shader_loader.corrected_error_line()) 
+		return
+		
+	for line_idx in get_line_count():
+		set_color(line_idx,default_line_color)
 
-#func code_request():
-	#var code = text
-	#await get_tree().create_timer(0.5).timeout
-	#if code != text:return
-	#for keyword in keyword_list:
-		#add_code_completion_option(CodeEdit.KIND_VARIABLE,keyword,keyword,Color.WHITE,null,null,CodeCompletionLocation.LOCATION_OTHER)
-	#update_code_completion_options(false)
+
+func set_error_line(line_idx): 
+	set_color(line_idx,error_line_color)
+
+func set_color(line_idx:int,match_color:Color):
+	line_idx = clamp(line_idx,0,get_line_count())
+	var color = get_line_background_color(line_idx)
+	if color == match_color:return
+	set_line_background_color(line_idx,match_color)
 
 
 func _gui_input(_event: InputEvent) -> void:
 	if Input.is_action_just_pressed('comment'): comment()
 	if Input.is_action_just_pressed('ui_find_next'): find_next()
-
-
 
 func comment() -> void:
 	if has_selection():
@@ -209,6 +217,7 @@ var keyword_list =  [
 	\"const\",
 	\"struct\",
 	\"shader_type\",
+	\"canvas_item\",
 	\"render_mode\",
 	\"stencil_mode\",
 
@@ -276,6 +285,9 @@ var keyword_list =  [
 ]
 "
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1bvp3"]
+bg_color = Color(0, 0, 0, 0.56700003)
+
 [sub_resource type="GDScript" id="GDScript_1bvp3"]
 script/source = "extends ColorPickerButton
 
@@ -315,11 +327,10 @@ script = ExtResource("1_0xm2m")
 
 [node name="TextureRect" type="TextureRect" parent="."]
 texture_repeat = 2
-layout_mode = 0
-offset_left = 576.0
-offset_top = 324.0
-offset_right = 576.0
-offset_bottom = 324.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -413,6 +424,25 @@ code_completion_enabled = true
 auto_brace_completion_enabled = true
 auto_brace_completion_highlight_matching = true
 script = SubResource("GDScript_0xm2m")
+
+[node name="error_text" type="Label" parent="codepanel/code"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -23.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.47058824, 0.41960785, 1)
+theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_1bvp3")
+theme_override_styles/focus = SubResource("StyleBoxFlat_1bvp3")
+horizontal_alignment = 1
+vertical_alignment = 1
+text_overrun_behavior = 3
+uppercase = true
 
 [node name="Control" type="Control" parent="."]
 custom_minimum_size = Vector2(200, 0)
