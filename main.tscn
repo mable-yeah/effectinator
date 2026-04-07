@@ -77,14 +77,16 @@ func _ready() -> void:
 func refresh():
 	%error_text.text = shader_loader.get_error_message()
 	if shader_loader.in_error_state:
-		set_error_line(shader_loader.corrected_error_line()) 
-		return
-		
+		set_error_line(shader_loader.corrected_error_line()) ; return
+	set_all_lines()
+
+func set_all_lines():
 	for line_idx in get_line_count():
 		set_color(line_idx,default_line_color)
 
 
-func set_error_line(line_idx): 
+func set_error_line(line_idx):
+	set_all_lines()
 	set_color(line_idx,error_line_color)
 
 func set_color(line_idx:int,match_color:Color):
@@ -442,7 +444,6 @@ theme_override_styles/focus = SubResource("StyleBoxFlat_1bvp3")
 horizontal_alignment = 1
 vertical_alignment = 1
 text_overrun_behavior = 3
-uppercase = true
 
 [node name="Control" type="Control" parent="."]
 custom_minimum_size = Vector2(200, 0)
