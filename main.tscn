@@ -97,8 +97,14 @@ func set_color(line_idx:int,match_color:Color):
 
 
 func _gui_input(_event: InputEvent) -> void:
-	if Input.is_action_just_pressed('comment'): comment()
-	if Input.is_action_just_pressed('ui_find_next'): find_next()
+	if Input.is_action_just_pressed('comment'): 
+		accept_event() ; comment()  
+	if Input.is_action_just_pressed('ui_find_next'): 
+		accept_event() ; find_next()
+	
+	#if (event is InputEventMouseButton): 
+		#accept_event() 
+
 
 func comment() -> void:
 	if has_selection():
