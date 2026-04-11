@@ -6,8 +6,8 @@ class_name alpha_fix
 var device := RenderingServer.create_local_rendering_device()
 var shader_file := load("res://util/compute_alphafix.glsl")
 var shader_spirv: RDShaderSPIRV = shader_file.get_spirv()
-var shader := device.shader_create_from_spirv(shader_spirv)
-var pipeline := device.compute_pipeline_create(shader)
+var shader:RID
+var pipeline:RID
 
 
 const usage_bits = (RenderingDevice.TEXTURE_USAGE_STORAGE_BIT +
@@ -23,7 +23,20 @@ const format = {
 }
 
 
+func setup():
+	if shader.is_valid():return
+	shader = device.shader_create_from_spirv(shader_spirv)
+	pipeline = device.compute_pipeline_create(shader)
+
+
 func fix_alpha(image: Image) -> ImageTexture:
+	if RenderingServer.get_current_rendering_method() == 'gl_compatibility':
+		return fix_alpha_noncompute(image)
+	return fix_alpha_compute(image)
+
+
+func fix_alpha_compute(image: Image) -> ImageTexture:
+	setup()
 	var texture_size = image.get_size()
 	image.convert(format.image  as Image.Format)
 	
@@ -51,7 +64,31 @@ func fix_alpha(image: Image) -> ImageTexture:
 
 	var data = device.texture_get_data(rd_texture, 0)
 	var output = Image.create_from_data(texture_size.x, texture_size.y, false, format.image as Image.Format, data)
+	output.generate_mipmaps()
 	var final = ImageTexture.create_from_image(output)
 	
 	device.free_rid(rd_texture)
 	return final
+
+
+
+
+#compute shaders do not work in browsers/ when gl_compatibility is enabled
+#so this is needed in that case, but it is VERY slow with larger images :p
+func fix_alpha_noncompute(image:Image) -> ImageTexture:
+	image.convert(Image.FORMAT_RGBA8)
+	var size = image.get_size() ; var data = image.get_data()
+	var i = 0
+	while i < data.size():
+		var color = Color(data[i],data[i + 1],data[i + 2],data[i + 3])
+		if color.a > 0:
+			color.a = 255 / color.a
+			data[i] = clamp(color.r * color.a,0,255) 
+			data[i + 1] = clamp(color.g * color.a,0,255) 
+			data[i + 2] = clamp(color.b * color.a,0,255) 
+		i += 4
+	
+	image.set_data(size.x,size.y,false,Image.FORMAT_RGBA8,data)
+	image.convert(format.image as Image.Format)
+	image.generate_mipmaps()
+	return ImageTexture.create_from_image(image)

@@ -34,8 +34,12 @@ func _ready() -> void:
 	apply_shader()
 
 
-func get_dialog() -> FileDialog:
-	var dialog = FileDialog.new()
+func get_dialog() -> Variant:
+	var dialog = FileDialog.new() 
+	if OS.get_name() == 'Web':
+		dialog.free()
+		dialog =  FileDialog_web.new()
+	
 	add_child(dialog)
 	dialog.use_native_dialog = true
 
@@ -53,17 +57,26 @@ func export_dialog():
 	var dialog = get_dialog()
 	dialog.title = 'pick a location to save the image'
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
+	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
 	
 	var formats = supported_formats.keys()
 	for i in formats.size():
 		var format = formats[i]
 		format = '*.%s' % format
 		formats[i] = format
+	
+	if dialog is FileDialog_web: 
+		formats.resize(1) ; dialog.set_data(save_image(''))
+		
+	
 	dialog.set_filters(formats)
+	
+	
 	dialog.popup()
 	dialog.file_selected.connect(
 		func(path):
 			dialog.call_deferred("queue_free")
+			if path == '':return
 			save_image(path)
 	)
 
@@ -75,10 +88,14 @@ func project_save_dialog(data:String):
 	dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
 	
 	dialog.set_filters(['*.eff']) #just bullshitting
+	
+	if dialog is FileDialog_web:
+		dialog.set_data(data)
 	dialog.popup()
 	dialog.file_selected.connect(
 		func(path):
 			dialog.call_deferred("queue_free")
+			if path == '':return
 			var file = FileAccess.open(path,FileAccess.WRITE)
 			file.store_string(data) ; file.close()
 	)
@@ -91,6 +108,7 @@ func format_project():
 		layers_data.push_back(layer.saveify())
 	
 	var image:Image = %sprite.texture.get_image()
+	image.clear_mipmaps()
 	var image_data = {
 		'layers':layers_data,
 		'size':[image.get_size().x,image.get_size().y],
@@ -111,15 +129,21 @@ func load_project():
 	dialog.popup()
 	dialog.file_selected.connect(
 		func(path):
+			var file_text:String = path
 			dialog.call_deferred("queue_free")
-			var file = FileAccess.open(path,FileAccess.READ)
-			if FileAccess.get_open_error() != OK: 
-				print(error_string(FileAccess.get_open_error()))
-				return
+			
+			if !(dialog is FileDialog_web):
+				var file = FileAccess.open(path,FileAccess.READ)
+				if FileAccess.get_open_error() != OK: 
+					print(error_string(FileAccess.get_open_error()))
+					return
+				file_text = file.get_as_text()
+			
 			for layer in layers:
 				layer.free()
 			layers.clear()
-			var data:Dictionary = JSON.parse_string(file.get_as_text())
+			
+			var data:Dictionary = JSON.parse_string(file_text)
 			
 			var stored_layers:Array = data.get('layers',[])
 			var image_data:PackedByteArray = data.get('data',PackedByteArray([0,0,0,0]).hex_encode()).hex_decode()
@@ -138,6 +162,8 @@ func load_project():
 			if image_size.has(null): image_size[image_size.find(null)] = 0.0
 			
 			var image = Image.create_from_data(image_size[0],image_size[1],false,format,image_data)
+			image.generate_mipmaps()
+			
 			var texture = ImageTexture.create_from_image(image)
 			
 			%sprite.texture = texture
@@ -190,14 +216,22 @@ func load_image(path:String):
 	image.call(function.read,Data)
 	Read.close()
 	
+	image.generate_mipmaps()
 	var texture = ImageTexture.create_from_image(image)
+	
 	%sprite.texture = texture
 	apply_shader()
 
 func save_image(path):
 	var image:Image = %sprite.texture.get_image()
+	image.clear_mipmaps()
 	image.convert(Image.FORMAT_RGBA8)
-	image.premultiply_alpha()
+	
+	if path == '':
+		var buffer = image.save_png_to_buffer()
+		return Marshalls.raw_to_base64(buffer)
+		#if the path is blank instead send in data, as JS doesnt return paths
+		#so we do it backwards/before calling the file explorer
 	
 	var function = supported_formats.get(path.get_extension(),null)
 	if function == null: 
@@ -214,6 +248,7 @@ func _process(_delta: float) -> void:
 	DisplayServer.window_set_title(monitor())
 
 func monitor() -> String:
+	if not OS.has_feature("editor"): return 'effectinator!! ^-^'
 	var MEM_PEAK = OS.get_static_memory_peak_usage() 
 	var MEM_static = OS.get_static_memory_usage() 
 	var VRAM = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED)

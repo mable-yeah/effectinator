@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=15 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -316,6 +316,13 @@ func _gui_input(event: InputEvent) -> void:
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_h2yge"]
 bg_color = Color(0, 0, 0, 0.44313726)
 
+[sub_resource type="GDScript" id="GDScript_lquwl"]
+script/source = "extends ScrollContainer
+
+
+func _process(_delta):custom_minimum_size.y = get_window().size.y/1.8
+"
+
 [node name="Node2D" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -375,6 +382,7 @@ grow_vertical = 2
 
 [node name="sprite" type="Sprite2D" parent="CenterContainer/viewport container/SubViewport/Container"]
 unique_name_in_owner = true
+texture_filter = 4
 material = SubResource("ShaderMaterial_h2yge")
 texture = ExtResource("2_h2yge")
 
@@ -429,6 +437,9 @@ script = SubResource("GDScript_0xm2m")
 
 [node name="error_text" type="Label" parent="codepanel/code"]
 unique_name_in_owner = true
+z_index = 4096
+z_as_relative = false
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -442,7 +453,6 @@ theme_override_colors/font_outline_color = Color(1, 1, 1, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_1bvp3")
 theme_override_styles/focus = SubResource("StyleBoxFlat_1bvp3")
 horizontal_alignment = 1
-vertical_alignment = 1
 text_overrun_behavior = 3
 
 [node name="Control" type="Control" parent="."]
@@ -453,11 +463,10 @@ anchor_bottom = 1.0
 grow_vertical = 2
 
 [node name="Panel" type="Panel" parent="Control"]
+custom_minimum_size = Vector2(200, 0)
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
+anchors_preset = 9
 anchor_bottom = 1.0
-grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
@@ -512,6 +521,7 @@ text = "exit contex"
 custom_minimum_size = Vector2(0, 400)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_h2yge")
+script = SubResource("GDScript_lquwl")
 
 [node name="layer_list" type="VBoxContainer" parent="Control/Panel/VBoxContainer/sub scroll"]
 unique_name_in_owner = true
