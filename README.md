@@ -3,6 +3,8 @@ drop in a png, or jpg and then write shader on the code panel on the right, pres
 
 colors can also be picked by right clicking the color picker in the top left returning them as '(0.0, 0.0, 0.0, 0.0)'
 
+do note that if you are using the website version of the editor, performance when loading/saving images may be lower than when using the project inside of godot itself
+
 ## format
 code wise you can drop in any code from godot shaders provided it uses the actual texture
 (uniform sampler2D's arent supported yet), and the shader is a 2d/canvas_item shader
