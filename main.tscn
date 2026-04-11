@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=16 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -329,6 +329,60 @@ script/source = "extends ScrollContainer
 func _process(_delta):custom_minimum_size.y = get_window().size.y/1.8
 "
 
+[sub_resource type="GDScript" id="GDScript_7mycd"]
+script/source = "extends Button
+
+
+var help_text = \"\"\"Effectinator is a project by mable d. \"yeah\"!! 
+
+shader_type headers are not needed,
+screen textures will not work as intended,
+vertex() works though
+
+open image -
+drop image onto app
+
+add layer name -
+//layer_name = 'example'
+
+add premade function -
+//include = [function_name,other_one,also_a_func]
+
+change canvas size, multiplicative -
+//canvas_size = [0.0,0.0]
+
+get next occurance of -
+ctrl + f + highlighted text
+
+toggle comment line -
+ctrl + q + highlighted text/current line
+
+AVAILABLE INCLUDES:
+%s
+
+open source 4 ever <3
+https://github.com/mable-yeah/effectinator
+\"\"\" 
+
+func _pressed() -> void:
+	var window := Popup.new()
+	window.borderless = false ; window.unresizable = false
+	window.size = Vector2(450,400)
+	window.title = 'about effectinator / help'
+	self.add_child(window)
+	
+	var label:CodeEdit = %code.duplicate()
+	label.z_as_relative = false ; label.z_index = 0
+	label.get_child(0).queue_free() ; label.set_script(null)
+	label.placeholder_text = '' ; label.set_anchors_preset(Control.PRESET_FULL_RECT)
+	
+	label.text = help_text % ',\\n'.join(shader_utility.function_names)
+	
+	window.add_child(label)
+	window.popup_centered()
+	window.popup_hide.connect(func(): window.queue_free())
+"
+
 [node name="Node2D" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -432,6 +486,7 @@ void vertex(){
 context_menu_enabled = false
 minimap_draw = true
 minimap_width = 20
+caret_draw_when_editable_disabled = true
 highlight_all_occurrences = true
 highlight_current_line = true
 draw_tabs = true
@@ -556,3 +611,18 @@ layout_mode = 2
 tooltip_text = "loads a project from a '.eff' file"
 focus_mode = 0
 text = "load project"
+
+[node name="help" type="Button" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -31.0
+offset_right = 33.0
+grow_vertical = 0
+scale = Vector2(0.8, 0.8)
+pivot_offset = Vector2(0, 31)
+focus_mode = 0
+text = "?"
+script = SubResource("GDScript_7mycd")

@@ -121,6 +121,7 @@ func format_project():
 	project_save_dialog(out)
 
 func load_project():
+	%code.set_caret_line(0) ; %code.set_caret_column(0)
 	var dialog = get_dialog()
 	dialog.title = 'pick a .eff file'
 	dialog.access = FileDialog.ACCESS_FILESYSTEM
