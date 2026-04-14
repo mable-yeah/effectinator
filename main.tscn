@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://b2pp5oadsfg0y"]
+[gd_scene load_steps=17 format=3 uid="uid://b2pp5oadsfg0y"]
 
 [ext_resource type="Script" uid="uid://dyqf7pn2ws3l7" path="res://main_scene.gd" id="1_0xm2m"]
 [ext_resource type="Texture2D" uid="uid://c08jidw0wilxt" path="res://icon.svg" id="2_h2yge"]
@@ -101,10 +101,6 @@ func _gui_input(_event: InputEvent) -> void:
 		accept_event() ; comment()  
 	if Input.is_action_just_pressed('ui_find_next'): 
 		accept_event() ; find_next()
-	
-	#if (event is InputEventMouseButton): 
-		#accept_event() 
-
 
 func comment() -> void:
 	if has_selection():
@@ -121,6 +117,7 @@ func comment_line(idx) -> void:
 	var has_comment = line.begins_with('//')
 	line = line.remove_chars('//') if has_comment else '//%s' % line
 	set_line(idx,line)
+	set_caret_column(2 if !has_comment else 0)
 
 
 #hopefully this doesnt tweak out
@@ -162,7 +159,7 @@ func is_function(p_keyword) -> bool:
 	return (shader_utility.function_names + ['fragment','vertex']).has(p_keyword)
 
 func is_special(p_keyword:String) -> bool:
-	return ['canvas_size','layer_name','include','COLOR','VERTEX','UV','TEXTURE'].has(p_keyword)
+	return ['canvas_size','image_size','layer_name','include','COLOR','VERTEX','UV','TEXTURE','TEXTURE_PIXEL_SIZE'].has(p_keyword)
 	
 func is_control_flow(p_keyword:String) -> bool:
 	return [\"break\",\"case\",\"continue\",\"default\",\"do\", \"else\",\"for\",\"if\",\"return\",\"switch\",\"while\"].has(p_keyword)
@@ -171,6 +168,7 @@ var keyword_list =  [
 	'include',
 	'layer_name',
 	'canvas_size',
+	'image_size',
 	'COLOR',
 	'VERTEX',
 	'UV',
@@ -290,11 +288,19 @@ var keyword_list =  [
 	\"vertex\",
 	'fragment',
 	'null',
+	'TEXTURE_PIXEL_SIZE'
 ]
 "
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1bvp3"]
 bg_color = Color(0, 0, 0, 0.56700003)
+
+[sub_resource type="GDScript" id="GDScript_272bh"]
+script/source = "extends Label
+
+func _process(_delta: float) -> void:
+	visible = text != ''
+"
 
 [sub_resource type="GDScript" id="GDScript_1bvp3"]
 script/source = "extends ColorPickerButton
@@ -335,9 +341,11 @@ script/source = "extends Button
 
 var help_text = \"\"\"Effectinator is a project by mable d. \"yeah\"!! 
 
-shader_type headers are not needed,
-screen textures will not work as intended,
-vertex() works though
+shader_type headers are not needed
+screen textures will not work as intended
+
+vertex() can be used to manipulate scale
+within the image
 
 open image -
 drop image onto app
@@ -348,8 +356,11 @@ add layer name -
 add premade function -
 //include = [function_name,other_one,also_a_func]
 
-change canvas size, multiplicative -
+change canvas size, multiplicative/padding -
 //canvas_size = [0.0,0.0]
+
+change image size, in pixels -
+//image_size = [0.0,0.0]
 
 get next occurance of -
 ctrl + f + highlighted text
@@ -515,6 +526,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_1bvp3")
 theme_override_styles/focus = SubResource("StyleBoxFlat_1bvp3")
 horizontal_alignment = 1
 text_overrun_behavior = 3
+script = SubResource("GDScript_272bh")
 
 [node name="Control" type="Control" parent="."]
 custom_minimum_size = Vector2(200, 0)

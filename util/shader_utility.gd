@@ -31,16 +31,13 @@ const function_names = [
 	"circle",
 	"border",
 	'scale_uv',
+	'random'
 ]
 
 
-
-
-
-
 const util_func = {
-0:'vec4 texture_clamped(sampler2D tex, vec2 uv) {
-	return (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0)  ? texture(tex, uv)  : vec4(0.0);
+0:'vec4 texture_clamped(sampler2D tex, vec2 uv,float blur) {
+	return (uv.x >= 0.0 && uv.x <= 1.0 && uv.y >= 0.0 && uv.y <= 1.0)  ? texture(tex,uv,blur)  : vec4(0.0);
 }',
 
 1:'vec2 rotateUV(vec2 uv, float rotation, float mid)
@@ -225,6 +222,12 @@ vec4 polygon(vec2 uv, float width, int sides)
 	uv *= scale;
 	uv += 0.5;
 	return uv;
+}
+',
+24:'
+float random (vec2 uv) {
+    return fract(sin(dot(uv.xy,
+        vec2(12.9898,78.233))) * 43758.5453123);
 }
 '
 }

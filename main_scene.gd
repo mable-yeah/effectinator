@@ -305,15 +305,33 @@ func get_layer_name(last_known_idx:int):
 	
 	return layer_name
 
-
+#canvas scale, multiplicative
 func get_canvas_size():
 	if %sprite.texture == null: return Vector2.ZERO
-	var canvas_size = %sprite.texture.get_size()
+	var canvas_size = get_image_size()
 	
 	if !current_code.contains('canvas_size'): return canvas_size
 	
+	var mult = get_vector('canvas_size')
+	if mult == Vector2.INF: return canvas_size
+	
+	canvas_size *= mult
+	return clamp(canvas_size,Vector2.ZERO,Vector2(4096,4096))
+
+#image size in pixels
+func get_image_size():
+	if %sprite.texture == null: return Vector2.ZERO
+	var base = %sprite.texture.get_size()
+	
+	if !current_code.contains('image_size'): return base
+	var target_size = get_vector('image_size')
+	if target_size == Vector2.INF: return base
+	return clamp(target_size,Vector2.ZERO,Vector2(4096,4096))
+
+func get_vector(vector_name:String):
+	var vector = Vector2.INF
 	var regex = RegEx.new()
-	regex.compile("\\/\\/canvas_size = \\[(\\d+(\\.?\\d+?)?),(\\d+(\\.?\\d+?)?)\\]")
+	regex.compile("\\/\\/%s = \\[(\\d+(\\.?\\d+?)?),(\\d+(\\.?\\d+?)?)\\]" % vector_name)
 	
 	var r_match = regex.search(current_code)
 	
@@ -321,12 +339,12 @@ func get_canvas_size():
 		var string:String = r_match.strings[0]
 		var start = string.find('[') ; var end = string.find(']')
 		
-		if (start == -1) || (end == -1): return canvas_size
+		if (start == -1) || (end == -1): return vector
 		string = string.substr(start,end)
 		
 		var parse = JSON.parse_string(string)
-		canvas_size *= Vector2(parse[0],parse[1])
-	return clamp(canvas_size,Vector2.ZERO,Vector2(4096,4096))
+		vector = Vector2(parse[0],parse[1])
+	return vector
 
 
 func _unhandled_input(event: InputEvent) -> void:
