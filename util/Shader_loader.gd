@@ -12,7 +12,7 @@ static var first_line = -1
 
 
 ##define a shader through a code string, used for user shaders and shaders that can't be stored in a scene
-static func define_shader(Shader_code:String) -> ShaderMaterial:
+static func define_shader(Shader_code:String,ignore_errors:bool = false) -> ShaderMaterial:
 	const fallback_shader =  '
 			shader_type canvas_item;
 			
@@ -22,15 +22,16 @@ static func define_shader(Shader_code:String) -> ShaderMaterial:
 	'
 	
 	var first = Shader_code.split('\n').get(0)
-	Shader_code = _inject_fallback(Shader_code)
+	Shader_code = _inject_fallback(Shader_code,ignore_errors)
 	first_line = Shader_code.split('\n').find(first)
-	
 	
 	var shader = shader_layer.new() ; shader.set_code(Shader_code)
 	var material = ShaderMaterial.new() ; material.set_shader(shader)
-	in_error_state = shader.has_error 
-	if shader.has_error: 
-		shader.set_code(fallback_shader)
+	
+	if not ignore_errors:
+		in_error_state = shader.has_error 
+		if shader.has_error: 
+			shader.set_code(fallback_shader)
 
 	return material
 
@@ -108,7 +109,7 @@ static func get_include(shader_code):
 
 
 ##injects a fallback hack into shader code so that uniform lists arent entirely empty, SHOULD NOT NEED TO BE CALLED BY ITSELF
-static func _inject_fallback(Shader_code):
+static func _inject_fallback(Shader_code,ignore_errors):
 	#inject a uniform so if there isnt any in the shader, i can at least load a fallback
 	var header =  Shader_code.find("shader_type")
 	if header != -1:
@@ -120,9 +121,13 @@ static func _inject_fallback(Shader_code):
 				header_position = lines.find(code)
 			if header_position != -INF:
 				break
-		#hopefully nobody ever uses this variable name, if they do.... they should not do that
-		var dist = 1
-		lines.insert(header_position + dist,"uniform bool ____________ = true;")
+		var dist = 0
+		
+		if !ignore_errors:
+			dist += 1
+			lines.insert(header_position + dist,"uniform bool ____________ = true;")
+			#hopefully nobody ever uses this variable name, if they do.... they should not do that
+		
 		var includes = get_include(Shader_code)
 		for include in includes:
 			dist += 1
@@ -133,7 +138,7 @@ static func _inject_fallback(Shader_code):
 		var lines:Array = Shader_code.split('\n')
 		lines.push_front('shader_type canvas_item;')
 		Shader_code = "\n".join(lines)
-		Shader_code = _inject_fallback(Shader_code)
+		Shader_code = _inject_fallback(Shader_code,ignore_errors)
 	return Shader_code
 
 

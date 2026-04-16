@@ -31,7 +31,9 @@ const function_names = [
 	"circle",
 	"border",
 	'scale_uv',
-	'random'
+	'random',
+	'hue',
+	'saturate'
 ]
 
 
@@ -228,6 +230,21 @@ vec4 polygon(vec2 uv, float width, int sides)
 float random (vec2 uv) {
     return fract(sin(dot(uv.xy,
         vec2(12.9898,78.233))) * 43758.5453123);
+}
+',
+25:'
+vec3 hue(vec3 color, float hue) {
+    const vec3 k = vec3(0.57735, 0.57735, 0.57735);
+    float cosAngle = cos(hue);
+    return vec3(color * cosAngle + cross(k, color) * sin(hue) + k * dot(k, color) * (1.0 - cosAngle));
+}
+',
+26:'
+vec3 saturate(vec3 rgb, float adjustment)
+{
+    const vec3 W = vec3(0.2125, 0.7154, 0.0721);
+    vec3 intensity = vec3(dot(rgb, W));
+    return mix(intensity, rgb, adjustment);
 }
 '
 }

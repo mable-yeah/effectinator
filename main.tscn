@@ -73,6 +73,8 @@ func _ready() -> void:
 	self.syntax_highlighter = highlight
 	get_tree().process_frame.connect(refresh)
 
+func is_hovered():
+	return Rect2(Vector2(), size).has_point(get_local_mouse_position())
 
 func refresh():
 	%error_text.text = shader_loader.get_error_message()
@@ -98,9 +100,16 @@ func set_color(line_idx:int,match_color:Color):
 
 func _gui_input(_event: InputEvent) -> void:
 	if Input.is_action_just_pressed('comment'): 
-		accept_event() ; comment()  
+		accept_event() ; comment() 
 	if Input.is_action_just_pressed('ui_find_next'): 
 		accept_event() ; find_next()
+	if Input.is_action_just_pressed('copy_shader'):
+		accept_event() ; copy_shader()
+
+func copy_shader() -> void:
+	var code = shader_loader.define_shader(text,true).get_shader().get_code()
+	DisplayServer.clipboard_set(code) ; select_all()
+
 
 func comment() -> void:
 	if has_selection():
@@ -118,6 +127,9 @@ func comment_line(idx) -> void:
 	line = line.remove_chars('//') if has_comment else '//%s' % line
 	set_line(idx,line)
 	set_caret_column(2 if !has_comment else 0)
+
+func contains_mouse() -> bool:
+	return Rect2(Vector2(), size).has_point(get_local_mouse_position())
 
 
 #hopefully this doesnt tweak out
@@ -361,6 +373,9 @@ change canvas size, multiplicative/padding -
 
 change image size, in pixels -
 //image_size = [0.0,0.0]
+
+copy raw shader code - 
+ctl + s
 
 get next occurance of -
 ctrl + f + highlighted text
@@ -636,5 +651,6 @@ grow_vertical = 0
 scale = Vector2(0.8, 0.8)
 pivot_offset = Vector2(0, 31)
 focus_mode = 0
+mouse_default_cursor_shape = 16
 text = "?"
 script = SubResource("GDScript_7mycd")

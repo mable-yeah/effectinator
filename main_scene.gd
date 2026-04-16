@@ -358,7 +358,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if !(event is InputEventMouseButton): return 
 	if !event.is_pressed(): return
-	
+	if %code.is_hovered(): return
 	
 	if event.button_index == MOUSE_BUTTON_WHEEL_UP:
 		vector += zoom
